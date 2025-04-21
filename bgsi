@@ -1,0 +1,122 @@
+-- Place this in StarterPlayerScripts > LocalScript
+
+local player = game.Players.LocalPlayer
+local rs = game:GetService("ReplicatedStorage")
+local workspace = game:GetService("Workspace")
+
+-- REPLACE THESE WITH YOUR REAL REMOTES
+local Remotes = {
+    BlowBubble = rs:WaitForChild("Remotes"):WaitForChild("BlowBubble"),
+    ClaimQuest = rs.Remotes:WaitForChild("ClaimQuest"),
+    ClaimPlaytime = rs.Remotes:WaitForChild("ClaimPlaytime"),
+    ClaimDaily = rs.Remotes:WaitForChild("ClaimDaily"),
+    ClaimSeasonPass = rs.Remotes:WaitForChild("ClaimSeasonPass"),
+    UnlockIsland = rs.Remotes:WaitForChild("UnlockIsland")
+}
+
+-- GUI
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "SimHelperUI"
+
+local uiFrame = Instance.new("Frame", screenGui)
+uiFrame.Size = UDim2.new(0, 300, 0, 300)
+uiFrame.Position = UDim2.new(0, 20, 0.5, -150)
+uiFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+uiFrame.BorderSizePixel = 0
+
+local uiLayout = Instance.new("UIListLayout", uiFrame)
+uiLayout.Padding = UDim.new(0, 8)
+
+local toggles = {
+    AutoBubble = false,
+    AutoQuest = false,
+    AutoPlaytimeDaily = false,
+    AutoCoins = false,
+    AutoSeasonPass = false,
+    AutoUnlockIslands = false
+}
+
+local function createToggle(name)
+    local button = Instance.new("TextButton", uiFrame)
+    button.Size = UDim2.new(1, -10, 0, 30)
+    button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.Text = name .. ": OFF"
+
+    button.MouseButton1Click:Connect(function()
+        toggles[name] = not toggles[name]
+        button.Text = name .. ": " .. (toggles[name] and "ON" or "OFF")
+    end)
+end
+
+-- Create all toggle buttons
+for name, _ in pairs(toggles) do
+    createToggle(name)
+end
+
+-- AUTO SYSTEMS
+
+spawn(function()
+    while true do
+        wait(0.5)
+        if toggles.AutoBubble then
+            Remotes.BlowBubble:FireServer()
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        wait(2)
+        if toggles.AutoQuest then
+            -- Replace with actual quest IDs
+            Remotes.ClaimQuest:InvokeServer("Quest1")
+            Remotes.ClaimQuest:InvokeServer("Quest2")
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        wait(60)
+        if toggles.AutoPlaytimeDaily then
+            Remotes.ClaimPlaytime:FireServer()
+            Remotes.ClaimDaily:FireServer()
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        wait(2)
+        if toggles.AutoCoins then
+            for _, coin in pairs(workspace:WaitForChild("Coins"):GetChildren()) do
+                if coin:IsA("Part") then
+                    firetouchinterest(player.Character.HumanoidRootPart, coin, 0)
+                    wait(0.05)
+                    firetouchinterest(player.Character.HumanoidRootPart, coin, 1)
+                end
+            end
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        wait(10)
+        if toggles.AutoSeasonPass then
+            Remotes.ClaimSeasonPass:InvokeServer("Tier1") -- Replace with real tiers
+        end
+    end
+end)
+
+spawn(function()
+    wait(5) -- Optional delay
+    if toggles.AutoUnlockIslands then
+        for _, island in pairs(Remotes.UnlockIsland:GetChildren()) do
+            Remotes.UnlockIsland:InvokeServer(island.Name)
+            wait(0.1)
+        end
+    end
+end)
